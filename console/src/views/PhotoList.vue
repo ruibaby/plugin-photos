@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import {
   VButton,
   VCard,
@@ -33,6 +33,10 @@ const editingModal = ref(false);
 const checkedAll = ref(false);
 const groupListRef = ref();
 
+const page = ref(1);
+const size = ref(20);
+const total = ref(0);
+
 const handleFetchPhotos = async (options?: { mute?: boolean }) => {
   try {
     if (!options?.mute) {
@@ -53,6 +57,8 @@ const handleFetchPhotos = async (options?: { mute?: boolean }) => {
     );
 
     // sort by priority
+    page.value = data.page;
+    total.value = data.total;
     photos.value = data.items
       .map((photo) => {
         if (photo.spec) {
@@ -250,34 +256,60 @@ const searchResults = computed({
 const attachmentModal = ref(false);
 
 const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
-  const photos: { url: string; cover?: string; displayName?: string }[] =
-    attachments
-      .map((attachment) => {
-        if (typeof attachment === "string") {
-          return {
-            url: attachment,
-            cover: attachment,
-          };
-        }
-        if ("url" in attachment) {
-          return {
-            url: attachment.url,
-            cover: attachment.url,
-          };
-        }
-        if ("spec" in attachment) {
-          return {
-            url: attachment.status?.permalink,
-            cover: attachment.status?.permalink,
-            displayName: attachment.spec.displayName,
-          };
-        }
-      })
-      .filter(Boolean) as {
-      url: string;
-      cover?: string;
-      displayName?: string;
-    }[];
+  const photos: {
+    url: string;
+    cover?: string;
+    displayName?: string;
+    type?: string;
+  }[] = attachments
+    .map((attachment) => {
+      if (typeof attachment === "string") {
+        return {
+          url: attachment,
+          cover: attachment,
+        };
+      }
+      if ("url" in attachment) {
+        return {
+          url: attachment.url,
+          cover: attachment.url,
+        };
+      }
+      if ("spec" in attachment) {
+        return {
+          url: attachment.status?.permalink,
+          cover: attachment.status?.permalink,
+          displayName: attachment.spec.displayName,
+          type: attachment.spec.mediaType,
+        };
+      }
+    })
+    .filter(Boolean) as {
+    url: string;
+    cover?: string;
+    displayName?: string;
+    type?: string;
+  }[];
+
+  for (const photo of photos) {
+    const type = photo.type;
+    if (!type) {
+      Toast.error("只支持选择图片");
+      nextTick(() => {
+        attachmentModal.value = true;
+      });
+
+      return;
+    }
+    const fileType = type.split("/")[0];
+    if (fileType !== "image") {
+      Toast.error("只支持选择图片");
+      nextTick(() => {
+        attachmentModal.value = true;
+      });
+      return;
+    }
+  }
 
   const createRequests = photos.map((photo) => {
     return apiClient.post<Photo>("/apis/core.halo.run/v1alpha1/photos", {
@@ -463,7 +495,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
                       :key="photo.metadata.name"
                       :alt="photo.spec.displayName"
                       :src="photo.spec.cover || photo.spec.url"
-                      classes="photos-pointer-events-none photos-object-cover group-hover:photos-opacity-75"
+                      classes="photos-w-full photos-h-40 photos-pointer-events-none photos-object-cover group-hover:photos-opacity-75"
                     >
                       <template #loading>
                         <div
@@ -505,6 +537,11 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
                     v-permission="['plugin:photos:manage']"
                     :class="{ '!flex': selectedPhotos.has(photo) }"
                     class="photos-absolute photos-top-0 photos-left-0 photos-hidden photos-h-1/3 photos-w-full photos-cursor-pointer photos-justify-end photos-bg-gradient-to-b photos-from-gray-300 photos-to-transparent photos-ease-in-out group-hover:photos-flex"
+                    @click.stop="
+                      selectedPhotos.has(photo)
+                        ? selectedPhotos.delete(photo)
+                        : selectedPhotos.add(photo)
+                    "
                   >
                     <IconCheckboxFill
                       :class="{
@@ -525,7 +562,12 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
               <div
                 class="photos-flex photos-flex-1 photos-items-center photos-justify-end"
               >
-                <VPagination :page="1" :size="10" :total="20" />
+                <VPagination
+                  v-model:page="page"
+                  v-model:size="size"
+                  :total="total"
+                  :size-options="[20, 30, 50, 100]"
+                />
               </div>
             </div>
           </template>

@@ -4,7 +4,16 @@ import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
 import Icons from "unplugin-icons/vite";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  if (mode === "dev") {
+    commonConfig.build.outDir = fileURLToPath(
+      new URL("../build/resources/main/console", import.meta.url)
+    );
+  }
+  return commonConfig;
+});
+
+const commonConfig = {
   plugins: [Vue(), Icons({ compiler: "vue3" })],
   resolve: {
     alias: {
@@ -45,4 +54,4 @@ export default defineConfig({
       },
     },
   },
-});
+}

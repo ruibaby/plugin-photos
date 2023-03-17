@@ -44,6 +44,7 @@ export interface PhotoList {
   page: number;
   size: number;
   total: number;
+  totalPages: number;
   items: Array<Photo>;
   first: boolean;
   last: boolean;
