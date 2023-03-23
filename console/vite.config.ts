@@ -54,4 +54,7 @@ const commonConfig = {
       },
     },
   },
-}
+  define: {
+    "process.env": {},
+  },
+};

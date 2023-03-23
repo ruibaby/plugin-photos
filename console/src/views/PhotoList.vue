@@ -22,10 +22,8 @@ import cloneDeep from "lodash.clonedeep";
 import Fuse from "fuse.js";
 import RiImage2Line from "~icons/ri/image-2-line";
 import type { AttachmentLike } from "@halo-dev/console-shared";
+import { useQuery } from "@tanstack/vue-query";
 
-const drag = ref(false);
-const photos = ref<Photo[]>([] as Photo[]);
-const loading = ref(false);
 const selectedPhoto = ref<Photo | undefined>();
 const selectedPhotos = ref<Set<Photo>>(new Set<Photo>());
 const selectedGroup = ref<PhotoGroup>();
@@ -36,45 +34,57 @@ const groupListRef = ref();
 const page = ref(1);
 const size = ref(20);
 const total = ref(0);
+const searchText = ref("");
+const keyword = ref("");
 
-const handleFetchPhotos = async (options?: { mute?: boolean }) => {
-  try {
-    if (!options?.mute) {
-      loading.value = true;
+const {
+  data: photos,
+  isLoading,
+  isFetching,
+  refetch,
+} = useQuery<Photo[]>({
+  queryKey: [
+    page,
+    size,
+    keyword,
+    selectedGroup,
+  ],
+  queryFn: async () => {
+    if (!selectedGroup.value) {
+      return [];
     }
-
-    if (!selectedGroup.value?.spec?.photos) {
-      return;
-    }
-
     const { data } = await apiClient.get<PhotoList>(
       "/apis/core.halo.run/v1alpha1/photos",
       {
         params: {
+          page: page.value,
+          size: size.value,
+          keyword: keyword.value,
           fieldSelector: `name=(${selectedGroup.value.spec.photos.join(",")})`,
         },
       }
     );
-
-    // sort by priority
-    page.value = data.page;
     total.value = data.total;
-    photos.value = data.items
-      .map((photo) => {
-        if (photo.spec) {
-          photo.spec.priority = photo.spec.priority || 0;
+    return data.items
+      .map((group) => {
+        if (group.spec) {
+          group.spec.priority = group.spec.priority || 0;
         }
-        return photo;
+        return group;
       })
       .sort((a, b) => {
         return (a.spec?.priority || 0) - (b.spec?.priority || 0);
       });
-  } catch (e) {
-    console.error("Failed to fetch photos", e);
-  } finally {
-    loading.value = false;
-  }
-};
+  },
+  refetchInterval(data: Photo[]) {
+    const deletingGroups = data?.filter(
+      (group) => !!group.metadata.deletionTimestamp
+    );
+
+    return deletingGroups?.length ? 1000 : false;
+  },
+  refetchOnWindowFocus: false,
+});
 
 const handleSelectPrevious = () => {
   const currentIndex = photos.value.findIndex(
@@ -126,7 +136,7 @@ const handleSaveInBatch = async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    await handleFetchPhotos({ mute: true });
+    await refetch();
   }
 };
 
@@ -142,8 +152,8 @@ const onPhotoSaved = async (photo: Photo) => {
     );
   }
 
-  await groupListRef.value.handleFetchGroups();
-  await handleFetchPhotos();
+  await groupListRef.value.refetch();
+  await refetch();
 };
 
 const handleDelete = (photo: Photo) => {
@@ -159,7 +169,7 @@ const handleDelete = (photo: Photo) => {
       } catch (e) {
         console.error(e);
       } finally {
-        handleFetchPhotos();
+        refetch();
       }
     },
   });
@@ -174,7 +184,7 @@ const handleDeleteInBatch = () => {
       try {
         const promises = Array.from(selectedPhotos.value).map((photo) => {
           return apiClient.delete(
-            `/apis/core.halo.run/v1alpha1/photos/${photo}`
+            `/apis/core.halo.run/v1alpha1/photos/${photo.metadata.name}`
           );
         });
         if (promises) {
@@ -183,7 +193,7 @@ const handleDeleteInBatch = () => {
       } catch (e) {
         console.error(e);
       } finally {
-        await handleFetchPhotos();
+        await refetch();
       }
     },
   });
@@ -221,7 +231,6 @@ watch(
 );
 
 // search
-const keyword = ref("");
 let fuse: Fuse<Photo> | undefined = undefined;
 
 watch(
@@ -345,15 +354,19 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
 
   Toast.success(`新建成功，一共创建了 ${photos.length} 张图片。`);
 
-  await groupListRef.value.handleFetchGroups();
-  handleFetchPhotos();
+  await groupListRef.value.refetch();
+  refetch();
+};
+
+const groupSelectHandle = (group?: PhotoGroup) => {
+  selectedGroup.value = group;
 };
 </script>
 <template>
   <PhotoEditingModal
     v-model:visible="editingModal"
     :photo="selectedPhoto"
-    @close="handleFetchPhotos({ mute: true })"
+    @close="refetch()"
     @saved="onPhotoSaved"
   >
     <template #append-actions>
@@ -379,8 +392,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
       <div class="photos-w-full sm:photos-w-80">
         <GroupList
           ref="groupListRef"
-          v-model:selected-group="selectedGroup"
-          @select="handleFetchPhotos()"
+          @select="(selectGroup) => groupSelectHandle(selectGroup)"
         />
       </div>
       <div class="photos-flex-1">
@@ -407,9 +419,10 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
                 >
                   <FormKit
                     v-if="!selectedPhotos.size"
-                    v-model="keyword"
+                    v-model="searchText"
                     placeholder="输入关键词搜索"
                     type="text"
+                    @keyup.enter="keyword = searchText"
                   ></FormKit>
                   <VSpace v-else>
                     <VButton type="danger" @click="handleDeleteInBatch">
@@ -450,12 +463,12 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
               </div>
             </div>
           </template>
-          <VLoading v-if="loading" />
+          <VLoading v-if="isLoading" />
           <Transition v-else-if="!searchResults.length" appear name="fade">
             <VEmpty message="你可以尝试刷新或者新建图片" title="当前没有图片">
               <template #actions>
                 <VSpace>
-                  <VButton @click="handleFetchPhotos"> 刷新</VButton>
+                  <VButton @click="refetch"> 刷新</VButton>
                   <VButton
                     v-permission="['plugin:photos:manage']"
                     type="primary"

@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import run.halo.app.extension.AbstractExtension;
 import run.halo.app.extension.GVK;
 
-import java.time.Instant;
-
 /**
  * @author ryanwang
  */
