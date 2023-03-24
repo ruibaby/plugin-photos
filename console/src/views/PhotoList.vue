@@ -43,24 +43,19 @@ const {
   isFetching,
   refetch,
 } = useQuery<Photo[]>({
-  queryKey: [
-    page,
-    size,
-    keyword,
-    selectedGroup,
-  ],
+  queryKey: [page, size, keyword, selectedGroup],
   queryFn: async () => {
     if (!selectedGroup.value) {
       return [];
     }
     const { data } = await apiClient.get<PhotoList>(
-      "/apis/core.halo.run/v1alpha1/photos",
+      "/apis/api.plugin.halo.run/v1alpha1/photos",
       {
         params: {
           page: page.value,
           size: size.value,
           keyword: keyword.value,
-          fieldSelector: `name=(${selectedGroup.value.spec.photos.join(",")})`,
+          group: selectedGroup.value.metadata.name,
         },
       }
     );
@@ -119,62 +114,6 @@ const handleOpenEditingModal = (photo?: Photo) => {
   editingModal.value = true;
 };
 
-const handleSaveInBatch = async () => {
-  try {
-    const promises = photos.value?.map((photo: Photo, index) => {
-      if (photo.spec) {
-        photo.spec.priority = index;
-      }
-      return apiClient.put(
-        `/apis/core.halo.run/v1alpha1/photos/${photo.metadata.name}`,
-        photo
-      );
-    });
-    if (promises) {
-      await Promise.all(promises);
-    }
-  } catch (e) {
-    console.error(e);
-  } finally {
-    await refetch();
-  }
-};
-
-const onPhotoSaved = async (photo: Photo) => {
-  const groupToUpdate = cloneDeep(selectedGroup.value);
-
-  if (groupToUpdate) {
-    groupToUpdate.spec.photos.push(photo.metadata.name);
-
-    await apiClient.put(
-      `/apis/core.halo.run/v1alpha1/photogroups/${groupToUpdate.metadata.name}`,
-      groupToUpdate
-    );
-  }
-
-  await groupListRef.value.refetch();
-  await refetch();
-};
-
-const handleDelete = (photo: Photo) => {
-  Dialog.warning({
-    title: "是否确认删除当前的图片？",
-    description: "删除之后将无法恢复。",
-    confirmType: "danger",
-    onConfirm: async () => {
-      try {
-        apiClient.delete(
-          `/apis/core.halo.run/v1alpha1/photos/${photo.metadata.name}`
-        );
-      } catch (e) {
-        console.error(e);
-      } finally {
-        refetch();
-      }
-    },
-  });
-};
-
 const handleDeleteInBatch = () => {
   Dialog.warning({
     title: "是否确认删除所选的图片？",
@@ -187,13 +126,11 @@ const handleDeleteInBatch = () => {
             `/apis/core.halo.run/v1alpha1/photos/${photo.metadata.name}`
           );
         });
-        if (promises) {
-          await Promise.all(promises);
-        }
+        await Promise.all(promises);
       } catch (e) {
         console.error(e);
       } finally {
-        await refetch();
+        pageRefetch();
       }
     },
   });
@@ -272,20 +209,27 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
     type?: string;
   }[] = attachments
     .map((attachment) => {
+      const post = {
+        groupName: selectedGroup.value?.metadata.name || "",
+      };
+
       if (typeof attachment === "string") {
         return {
+          ...post,
           url: attachment,
           cover: attachment,
         };
       }
       if ("url" in attachment) {
         return {
+          ...post,
           url: attachment.url,
           cover: attachment.url,
         };
       }
       if ("spec" in attachment) {
         return {
+          ...post,
           url: attachment.status?.permalink,
           cover: attachment.status?.permalink,
           displayName: attachment.spec.displayName,
@@ -332,42 +276,28 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
     });
   });
 
-  const responses = await Promise.all(createRequests);
-
-  // update current group
-
-  const groupToUpdate = cloneDeep(selectedGroup.value);
-
-  if (groupToUpdate) {
-    groupToUpdate.spec.photos = [
-      ...groupToUpdate.spec.photos,
-      ...responses.map((response) => {
-        return response.data.metadata.name;
-      }),
-    ];
-
-    await apiClient.put(
-      `/apis/core.halo.run/v1alpha1/photogroups/${groupToUpdate.metadata.name}`,
-      groupToUpdate
-    );
-  }
+  await Promise.all(createRequests);
 
   Toast.success(`新建成功，一共创建了 ${photos.length} 张图片。`);
-
-  await groupListRef.value.refetch();
-  refetch();
+  pageRefetch();
 };
 
 const groupSelectHandle = (group?: PhotoGroup) => {
   selectedGroup.value = group;
+};
+
+const pageRefetch = async () => {
+  await groupListRef.value.refetch();
+  await refetch();
 };
 </script>
 <template>
   <PhotoEditingModal
     v-model:visible="editingModal"
     :photo="selectedPhoto"
+    :group="selectedGroup"
     @close="refetch()"
-    @saved="onPhotoSaved"
+    @saved="pageRefetch"
   >
     <template #append-actions>
       <span @click="handleSelectPrevious">
@@ -485,7 +415,7 @@ const groupSelectHandle = (group?: PhotoGroup) => {
           </Transition>
           <Transition v-else appear name="fade">
             <div
-              class="photos-mt-2 photos-grid photos-grid-cols-3 photos-gap-x-2 photos-gap-y-3 sm:photos-grid-cols-3 md:photos-grid-cols-4 lg:photos-grid-cols-6"
+              class="photos-mt-2 photos-grid photos-grid-cols-1 photos-gap-x-2 photos-gap-y-3 sm:photos-grid-cols-2 md:photos-grid-cols-3 lg:photos-grid-cols-4"
               role="list"
             >
               <VCard

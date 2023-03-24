@@ -15,7 +15,6 @@ export interface Metadata {
 export interface PhotoGroupSpec {
   displayName: string;
   priority?: number;
-  photos: string[];
 }
 
 export interface PhotoSpec {
@@ -24,6 +23,7 @@ export interface PhotoSpec {
   url: string;
   cover?: string;
   priority?: number;
+  groupName: string;
 }
 
 export interface Photo {

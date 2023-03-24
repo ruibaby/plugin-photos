@@ -105,14 +105,6 @@ const handleDelete = async (group: PhotoGroup) => {
         await apiClient.delete(
           `/apis/core.halo.run/v1alpha1/photogroups/${group.metadata.name}`
         );
-
-        const deleteItemsPromises = group.spec?.photos.map((item) =>
-          apiClient.delete(`/apis/core.halo.run/v1alpha1/photos/${item}`)
-        );
-
-        if (deleteItemsPromises) {
-          await Promise.all(deleteItemsPromises);
-        }
         refetch();
       } catch (e) {
         console.error("Failed to delete photo group", e);
