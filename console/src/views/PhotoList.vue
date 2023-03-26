@@ -12,13 +12,14 @@ import {
   VLoading,
   IconCheckboxFill,
   Toast,
+  IconArrowLeft,
+  IconArrowRight,
 } from "@halo-dev/components";
 import GroupList from "../components/GroupList.vue";
 import PhotoEditingModal from "@/components/PhotoEditingModal.vue";
 import LazyImage from "@/components/LazyImage.vue";
 import apiClient from "@/utils/api-client";
 import type { Photo, PhotoGroup, PhotoList } from "@/types";
-import cloneDeep from "lodash.clonedeep";
 import Fuse from "fuse.js";
 import RiImage2Line from "~icons/ri/image-2-line";
 import type { AttachmentLike } from "@halo-dev/console-shared";
@@ -289,6 +290,7 @@ const groupSelectHandle = (group?: PhotoGroup) => {
 const pageRefetch = async () => {
   await groupListRef.value.refetch();
   await refetch();
+  selectedPhotos.value = new Set<Photo>();
 };
 </script>
 <template>
@@ -419,8 +421,8 @@ const pageRefetch = async () => {
               role="list"
             >
               <VCard
-                v-for="(photo, index) in photos"
-                :key="index"
+                v-for="photo in photos"
+                :key="photo.metadata.name"
                 :body-class="['!p-0']"
                 :class="{
                   'photos-ring-primary photos-ring-1': isChecked(photo),

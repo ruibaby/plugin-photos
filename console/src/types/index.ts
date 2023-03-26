@@ -17,6 +17,10 @@ export interface PhotoGroupSpec {
   priority?: number;
 }
 
+export interface PostGroupStatus {
+  photoCount: number;
+}
+
 export interface PhotoSpec {
   displayName: string;
   description?: string;
@@ -38,6 +42,7 @@ export interface PhotoGroup {
   apiVersion: string;
   kind: string;
   metadata: Metadata;
+  status: PostGroupStatus;
 }
 
 export interface PhotoList {

@@ -6,8 +6,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 import run.halo.app.extension.router.IListRequest;
 
-import java.time.Instant;
-
 /**
  * A query object for {@link Photo} list.
  *
@@ -45,9 +43,5 @@ public class PhotoQuery extends IListRequest.QueryListRequest {
 
     private Boolean convertBooleanOrNull(String value) {
         return StringUtils.isBlank(value) ? null : Boolean.parseBoolean(value);
-    }
-    
-    private Instant convertInstantOrNull(String timeStr) {
-        return StringUtils.isBlank(timeStr) ? null : Instant.parse(timeStr);
     }
 }

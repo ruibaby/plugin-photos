@@ -51,7 +51,7 @@ const { data: groups, refetch } = useQuery<PhotoGroup[]>({
   queryKey: [],
   queryFn: async () => {
     const { data } = await apiClient.get<PhotoGroupList>(
-      "/apis/core.halo.run/v1alpha1/photogroups"
+      "/apis/api.plugin.halo.run/v1alpha1/photogroups"
     );
     return data.items
       .map((group) => {
@@ -181,7 +181,7 @@ defineExpose({
               <template #start>
                 <VEntityField
                   :title="group.spec?.displayName"
-                  :description="`${group.spec.photos?.length || 0} 个图片`"
+                  :description="`${group.status.photoCount || 0} 个图片`"
                 ></VEntityField>
               </template>
 

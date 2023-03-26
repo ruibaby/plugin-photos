@@ -1,10 +1,13 @@
 package run.halo.photos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import run.halo.app.extension.AbstractExtension;
 import run.halo.app.extension.GVK;
+
+import java.util.Objects;
 
 /**
  * @author ryanwang
@@ -32,4 +35,10 @@ public class Photo extends AbstractExtension {
         
         private String groupName;
     }
+
+    @JsonIgnore
+    public boolean isDeleted() {
+        return Objects.equals(true, getMetadata().getDeletionTimestamp() != null);
+    }
+
 }

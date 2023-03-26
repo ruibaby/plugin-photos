@@ -1,18 +1,20 @@
 package run.halo.photos.service.impl;
 
-import static run.halo.app.extension.router.selector.SelectorUtil.labelAndFieldSelectorToPredicate;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import run.halo.app.extension.Extension;
 import run.halo.app.extension.ListResult;
 import run.halo.app.extension.ReactiveExtensionClient;
-import run.halo.photos.*;
+import run.halo.photos.Photo;
+import run.halo.photos.PhotoQuery;
+import run.halo.photos.PhotoSorter;
 import run.halo.photos.service.PhotoService;
 
 import java.util.Comparator;
 import java.util.function.Predicate;
+
+import static run.halo.app.extension.router.selector.SelectorUtil.labelAndFieldSelectorToPredicate;
 
 /**
  * Service implementation for {@link Photo}.
@@ -22,13 +24,13 @@ import java.util.function.Predicate;
  */
 @Component
 public class PhotoServiceImpl implements PhotoService {
-    
+
     private final ReactiveExtensionClient client;
-    
+
     public PhotoServiceImpl(ReactiveExtensionClient client) {
         this.client = client;
     }
-    
+
     @Override
     public Mono<ListResult<Photo>> listPhoto(PhotoQuery query) {
         Comparator<Photo> comparator =
@@ -37,18 +39,18 @@ public class PhotoServiceImpl implements PhotoService {
             comparator,
             query.getPage(), query.getSize());
     }
-    
+
     Predicate<Photo> photoListPredicate(PhotoQuery query) {
         Predicate<Photo> predicate = photo -> true;
         String keyword = query.getKeyword();
-        
+
         if (keyword != null) {
             predicate = predicate.and(photo -> {
                 String displayName = photo.getSpec().getDisplayName();
                 return StringUtils.containsIgnoreCase(displayName, keyword);
             });
         }
-        
+
         String groupName = query.getGroup();
         if (groupName != null) {
             predicate = predicate.and(photo -> {
@@ -56,7 +58,7 @@ public class PhotoServiceImpl implements PhotoService {
                 return StringUtils.equals(group, groupName);
             });
         }
-        
+
         Predicate<Extension> labelAndFieldSelectorPredicate =
             labelAndFieldSelectorToPredicate(query.getLabelSelector(),
                 query.getFieldSelector());

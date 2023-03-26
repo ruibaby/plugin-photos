@@ -32,8 +32,10 @@ const initialFormState: PhotoGroup = {
   spec: {
     displayName: "",
     priority: 0,
-    photos: [],
   },
+  status: {
+    photoCount: 0,
+  }
 };
 
 const formState = ref<PhotoGroup>(initialFormState);
