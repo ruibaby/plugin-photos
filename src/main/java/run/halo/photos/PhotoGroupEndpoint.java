@@ -41,12 +41,25 @@ public class PhotoGroupEndpoint implements CustomEndpoint {
                     );
                 QueryParamBuildUtil.buildParametersFromType(builder, QueryListRequest.class);
             })
+            .DELETE("photogroups/{name}", this::deletePhotoGroup,
+                builder -> builder.operationId("DeletePhotoGroup")
+                    .description("Delete photoGroup.")
+                    .tag(tag)
+                    .response(responseBuilder()
+                        .implementation(ListResult.generateGenericClass(PhotoGroup.class))
+                    ))
             .build();
     }
     
     @Override
     public GroupVersion groupVersion() {
         return GroupVersion.parseAPIVersion("api.plugin.halo.run/v1alpha1");
+    }
+    
+    private Mono<ServerResponse> deletePhotoGroup(ServerRequest serverRequest) {
+        String name = serverRequest.pathVariable("name");
+        return photoGroupService.deletePhotoGroup(name)
+            .flatMap(photoGroup -> ServerResponse.ok().bodyValue(photoGroup));
     }
     
     private Mono<ServerResponse> listPhotoGroup(ServerRequest serverRequest) {

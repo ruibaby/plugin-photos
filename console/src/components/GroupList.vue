@@ -103,7 +103,7 @@ const handleDelete = async (group: PhotoGroup) => {
     onConfirm: async () => {
       try {
         await apiClient.delete(
-          `/apis/core.halo.run/v1alpha1/photogroups/${group.metadata.name}`
+          `/apis/api.plugin.halo.run/v1alpha1/photogroups/${group.metadata.name}`
         );
         refetch();
       } catch (e) {

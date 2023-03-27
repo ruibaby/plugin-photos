@@ -11,4 +11,7 @@ import run.halo.photos.PhotoGroup;
  */
 public interface PhotoGroupService {
     Mono<ListResult<PhotoGroup>> listPhotoGroup(QueryListRequest request);
+    
+    Mono<PhotoGroup> deletePhotoGroup(String name);
+    
 }
