@@ -6,9 +6,18 @@ import run.halo.photos.Photo;
 import run.halo.photos.PhotoQuery;
 
 /**
+ * A service for {@link Photo}.
+ *
  * @author LIlGG
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface PhotoService {
+    
+    /**
+     * List photos.
+     *
+     * @param query query
+     * @return a mono of list result
+     */
     Mono<ListResult<Photo>> listPhoto(PhotoQuery query);
 }

@@ -13,7 +13,7 @@ import run.halo.app.extension.router.IListRequest;
  * @since 1.0.0
  */
 public class PhotoQuery extends IListRequest.QueryListRequest {
-
+    
     public PhotoQuery(MultiValueMap<String, String> queryParams) {
         super(queryParams);
     }

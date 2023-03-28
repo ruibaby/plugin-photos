@@ -1,5 +1,7 @@
 package run.halo.photos;
 
+import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder;
+
 import lombok.AllArgsConstructor;
 import org.springdoc.webflux.core.fn.SpringdocRouteBuilder;
 import org.springframework.stereotype.Component;
@@ -13,8 +15,6 @@ import run.halo.app.extension.ListResult;
 import run.halo.app.extension.router.IListRequest.QueryListRequest;
 import run.halo.app.extension.router.QueryParamBuildUtil;
 import run.halo.photos.service.PhotoGroupService;
-
-import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder;
 
 /**
  * A custom endpoint for {@link Photo}.

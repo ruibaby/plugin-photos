@@ -8,7 +8,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import run.halo.app.core.extension.endpoint.CustomEndpoint;
 import run.halo.app.core.extension.endpoint.CustomEndpointsBuilder;
 
-
+/**
+ * Photo configuration.
+ *
+ * @author LIlGG
+ * @since 1.0.0
+ */
 @Configuration
 public class PhotoConfiguration {
 

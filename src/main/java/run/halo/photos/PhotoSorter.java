@@ -1,11 +1,10 @@
 package run.halo.photos;
 
-import org.springframework.util.comparator.Comparators;
-
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Function;
+import org.springframework.util.comparator.Comparators;
 
 /**
  * A sorter for {@link Photo}.
@@ -17,9 +16,9 @@ public enum PhotoSorter {
     DISPLAY_NAME,
     
     CREATE_TIME;
-
+    
     static final Function<Photo, String> name = photo -> photo.getMetadata().getName();
-
+    
     /**
      * Converts {@link Comparator} from {@link PhotoSorter} and ascending.
      *
@@ -33,7 +32,7 @@ public enum PhotoSorter {
         }
         return from(sorter).reversed();
     }
-
+    
     /**
      * Converts {@link Comparator} from {@link PhotoSorter}.
      *
@@ -57,10 +56,10 @@ public enum PhotoSorter {
             return Comparator.comparing(comparatorFunc, Comparators.nullsLow())
                 .thenComparing(name);
         }
-
+        
         throw new IllegalStateException("Unsupported sort value: " + sorter);
     }
-
+    
     /**
      * Converts {@link PhotoSorter} from string.
      *
@@ -75,7 +74,7 @@ public enum PhotoSorter {
         }
         return null;
     }
-
+    
     /**
      * Creates a {@link Comparator} of {@link Photo} by creation time.
      *
