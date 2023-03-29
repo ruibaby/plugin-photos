@@ -9,43 +9,27 @@ import {
   Dialog,
   VEmpty,
   VLoading,
+  VDropdownItem,
 } from "@halo-dev/components";
 import GroupEditingModal from "./GroupEditingModal.vue";
 import type { PhotoGroup } from "@/types";
 import type { PhotoGroupList } from "@/types";
-import { computed, ref, watch } from "vue";
+import { ref } from "vue";
 import Draggable from "vuedraggable";
 import apiClient from "@/utils/api-client";
 import { useRouteQuery } from "@vueuse/router";
 import { useQuery } from "@tanstack/vue-query";
 
 const emit = defineEmits<{
-  (event: "select", group?: PhotoGroup): void;
+  (event: "select", group?: string): void;
 }>();
-
-const groupQuery = useRouteQuery("group");
 
 const loading = ref(false);
 const groupEditingModal = ref(false);
 
 const updateGroup = ref<PhotoGroup>();
 
-const selectedGroup = computed({
-  get: () => {
-    if (!groups.value) {
-      return undefined;
-    }
-    if (!groupQuery.value) {
-      return groups.value[0];
-    }
-    return groups.value.find(
-      (group) => group.metadata.name === groupQuery.value
-    );
-  },
-  set: (val) => {
-    return val;
-  },
-});
+const selectedGroup = useRouteQuery<string>("group");
 
 const { data: groups, refetch } = useQuery<PhotoGroup[]>({
   queryKey: [],
@@ -71,6 +55,16 @@ const { data: groups, refetch } = useQuery<PhotoGroup[]>({
 
     return deletingGroups?.length ? 1000 : false;
   },
+  onSuccess(data) {
+    if (selectedGroup.value) {
+      emit("select", selectedGroup.value);
+      return;
+    }
+
+    if (data.length) {
+      handleSelectedClick(data[0]);
+    }
+  },
   refetchOnWindowFocus: false,
 });
 
@@ -80,6 +74,7 @@ const handleSaveInBatch = async () => {
       if (group.spec) {
         group.spec.priority = index;
       }
+      console.log(group.spec.displayName + " " + group.spec.priority + " " + index)
       return apiClient.put(
         `/apis/core.halo.run/v1alpha1/photogroups/${group.metadata.name}`,
         group
@@ -119,17 +114,9 @@ const handleOpenEditingModal = (group?: PhotoGroup) => {
 };
 
 const handleSelectedClick = (group: PhotoGroup) => {
-  selectedGroup.value = group;
-  groupQuery.value = group.metadata.name;
+  selectedGroup.value = group.metadata.name;
+  emit("select", group.metadata.name);
 };
-
-watch(
-  selectedGroup,
-  function (newGroup) {
-    emit("select", newGroup);
-  },
-  { deep: true }
-);
 
 defineExpose({
   refetch,
@@ -165,9 +152,7 @@ defineExpose({
         <template #item="{ element: group }">
           <li @click="handleSelectedClick(group)">
             <VEntity
-              :is-selected="
-                selectedGroup?.metadata.name === group.metadata.name
-              "
+              :is-selected="selectedGroup === group.metadata.name"
               class="photos-group"
             >
               <template #prepend>
@@ -194,22 +179,12 @@ defineExpose({
               </template>
 
               <template #dropdownItems>
-                <VButton
-                  v-close-popper
-                  block
-                  type="secondary"
-                  @click="handleOpenEditingModal(group)"
-                >
+                <VDropdownItem @click="handleOpenEditingModal(group)">
                   修改
-                </VButton>
-                <VButton
-                  v-close-popper
-                  block
-                  type="danger"
-                  @click="handleDelete(group)"
-                >
+                </VDropdownItem>
+                <VDropdownItem type="danger" @click="handleDelete(group)">
                   删除
-                </VButton>
+                </VDropdownItem>
               </template>
             </VEntity>
           </li>

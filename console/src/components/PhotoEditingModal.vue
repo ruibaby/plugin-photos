@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { IconSave, VButton, VModal } from "@halo-dev/components";
-import { computed, defineProps, onMounted, ref, watch } from "vue";
+import { computed, defineProps, ref, watch } from "vue";
 import type { Photo, PhotoGroup } from "@/types";
 import apiClient from "@/utils/api-client";
 import cloneDeep from "lodash.clonedeep";
@@ -10,7 +10,7 @@ const props = withDefaults(
   defineProps<{
     visible: boolean;
     photo?: Photo;
-    group?: PhotoGroup;
+    group?: string;
   }>(),
   {
     visible: false,
@@ -59,23 +59,13 @@ const initialFormState: Photo = {
     displayName: "",
     url: "",
     cover: "",
-    groupName: props.group?.metadata.name || "",
+    groupName: props.group || "",
   },
   kind: "Photo",
   apiVersion: "core.halo.run/v1alpha1",
 };
 
-const formState = computed({
-  get: () => {
-    if (props.photo) {
-      return cloneDeep(props.photo);
-    }
-    return cloneDeep(initialFormState);
-  },
-  set: (val) => {
-    return val;
-  },
-});
+const formState = ref<Photo>(cloneDeep(initialFormState));
 
 const saving = ref<boolean>(false);
 
@@ -129,7 +119,7 @@ const handleSavePhoto = async () => {
       );
     } else {
       if (props.group) {
-        formState.value.spec.groupName = props.group.metadata.name;
+        formState.value.spec.groupName = props.group;
       }
       const { data } = await apiClient.post<Photo>(
         `/apis/core.halo.run/v1alpha1/photos`,

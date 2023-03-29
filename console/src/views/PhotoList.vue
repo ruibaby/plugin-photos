@@ -14,12 +14,14 @@ import {
   Toast,
   IconArrowLeft,
   IconArrowRight,
+  VDropdown,
+  VDropdownItem,
 } from "@halo-dev/components";
 import GroupList from "../components/GroupList.vue";
 import PhotoEditingModal from "@/components/PhotoEditingModal.vue";
 import LazyImage from "@/components/LazyImage.vue";
 import apiClient from "@/utils/api-client";
-import type { Photo, PhotoGroup, PhotoList } from "@/types";
+import type { Photo, PhotoList } from "@/types";
 import Fuse from "fuse.js";
 import RiImage2Line from "~icons/ri/image-2-line";
 import type { AttachmentLike } from "@halo-dev/console-shared";
@@ -27,7 +29,7 @@ import { useQuery } from "@tanstack/vue-query";
 
 const selectedPhoto = ref<Photo | undefined>();
 const selectedPhotos = ref<Set<Photo>>(new Set<Photo>());
-const selectedGroup = ref<PhotoGroup>();
+const selectedGroup = ref<string>();
 const editingModal = ref(false);
 const checkedAll = ref(false);
 const groupListRef = ref();
@@ -41,7 +43,6 @@ const keyword = ref("");
 const {
   data: photos,
   isLoading,
-  isFetching,
   refetch,
 } = useQuery<Photo[]>({
   queryKey: [page, size, keyword, selectedGroup],
@@ -56,7 +57,7 @@ const {
           page: page.value,
           size: size.value,
           keyword: keyword.value,
-          group: selectedGroup.value.metadata.name,
+          group: selectedGroup.value,
         },
       }
     );
@@ -211,7 +212,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
   }[] = attachments
     .map((attachment) => {
       const post = {
-        groupName: selectedGroup.value?.metadata.name || "",
+        groupName: selectedGroup.value || "",
       };
 
       if (typeof attachment === "string") {
@@ -283,7 +284,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
   pageRefetch();
 };
 
-const groupSelectHandle = (group?: PhotoGroup) => {
+const groupSelectHandle = (group?: string) => {
   selectedGroup.value = group;
 };
 
@@ -322,10 +323,7 @@ const pageRefetch = async () => {
   <div class="photos-p-4">
     <div class="photos-flex photos-flex-col photos-gap-2 sm:photos-flex-row">
       <div class="photos-w-full sm:photos-w-80">
-        <GroupList
-          ref="groupListRef"
-          @select="(selectGroup) => groupSelectHandle(selectGroup)"
-        />
+        <GroupList ref="groupListRef" @select="groupSelectHandle" />
       </div>
       <div class="photos-flex-1">
         <VCard>
@@ -366,31 +364,17 @@ const pageRefetch = async () => {
                   v-permission="['plugin:photos:manage']"
                   class="photos-mt-4 photos-flex sm:photos-mt-0"
                 >
-                  <FloatingDropdown>
+                  <VDropdown>
                     <VButton size="xs"> 新增 </VButton>
                     <template #popper>
-                      <div class="w-48 p-2">
-                        <VSpace class="w-full" direction="column">
-                          <VButton
-                            v-close-popper
-                            type="default"
-                            block
-                            @click="handleOpenEditingModal()"
-                          >
-                            新增
-                          </VButton>
-                          <VButton
-                            v-close-popper
-                            type="default"
-                            block
-                            @click="attachmentModal = true"
-                          >
-                            从附件库选择
-                          </VButton>
-                        </VSpace>
-                      </div>
+                      <VDropdownItem @click="handleOpenEditingModal()">
+                        新增
+                      </VDropdownItem>
+                      <VDropdownItem @click="attachmentModal = true">
+                        从附件库选择
+                      </VDropdownItem>
                     </template>
-                  </FloatingDropdown>
+                  </VDropdown>
                 </div>
               </div>
             </div>
