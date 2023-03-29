@@ -51,13 +51,13 @@ public class PhotoFInderImpl implements PhotoFinder {
                                                 Predicate<Photo> photoPredicate,
                                                 Comparator<Photo> comparator) {
         Predicate<Photo> predicate = photoPredicate == null ? photo -> true : photoPredicate;
-        if (Objects.nonNull(group)) {
-            predicate.and(photo -> {
+        if (StringUtils.isNotEmpty(group)) {
+            predicate = predicate.and(photo -> {
                 String groupName = photo.getSpec().getGroupName();
                 return StringUtils.equals(groupName, group);
             });
         }
-        return client.list(Photo.class, photoPredicate, comparator,
+        return client.list(Photo.class, predicate, comparator,
                 pageNullSafe(page), sizeNullSafe(size))
             .flatMap(list -> Flux.fromStream(list.get())
                 .concatMap(photo -> Mono.just(PhotoVo.from(photo)))
@@ -83,17 +83,17 @@ public class PhotoFInderImpl implements PhotoFinder {
     @Override
     public Flux<PhotoGroupVo> groupBy() {
         return this.client.list(PhotoGroup.class, null, defaultGroupComparator())
-            .flatMap(group -> {
+            .concatMap(group -> {
                 PhotoGroupVo.PhotoGroupVoBuilder builder = PhotoGroupVo.from(group);
                 return this.listBy(group.getMetadata().getName())
                     .collectList()
-                    .doOnNext(photos -> {
-                        builder.photos(photos);
+                    .map(photos -> {
                         PhotoGroup.PostGroupStatus status = group.getStatus();
                         status.setPhotoCount(photos.size());
                         builder.status(status);
-                    })
-                    .thenReturn(builder.build());
+                        builder.photos(photos);
+                        return builder.build();
+                    });
             });
     }
     
