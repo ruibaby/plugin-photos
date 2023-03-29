@@ -74,7 +74,6 @@ const handleSaveInBatch = async () => {
       if (group.spec) {
         group.spec.priority = index;
       }
-      console.log(group.spec.displayName + " " + group.spec.priority + " " + index)
       return apiClient.put(
         `/apis/core.halo.run/v1alpha1/photogroups/${group.metadata.name}`,
         group

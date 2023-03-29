@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { IconSave, VButton, VModal } from "@halo-dev/components";
 import { computed, defineProps, ref, watch } from "vue";
-import type { Photo, PhotoGroup } from "@/types";
+import type { Photo } from "@/types";
 import apiClient from "@/utils/api-client";
 import cloneDeep from "lodash.clonedeep";
 import { reset, submitForm } from "@formkit/core";
@@ -113,7 +113,7 @@ const handleSavePhoto = async () => {
   try {
     saving.value = true;
     if (isUpdateMode.value) {
-      const { data } = await apiClient.put<Photo>(
+      await apiClient.put<Photo>(
         `/apis/core.halo.run/v1alpha1/photos/${formState.value.metadata.name}`,
         formState.value
       );
