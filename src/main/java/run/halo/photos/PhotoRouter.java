@@ -43,7 +43,7 @@ public class PhotoRouter {
     private HandlerFunction<ServerResponse> handlerFunction() {
         return request -> ServerResponse.ok().render("photos",
             Map.of("groups", photoGroups(), ModelConst.TEMPLATE_ID, "photos",
-                "photos_title", Mono.fromCallable(() -> this.settingFetcher.get(
+                "title", Mono.fromCallable(() -> this.settingFetcher.get(
                     "base").get("title").asText("图库"))
             )
         );
