@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import run.halo.app.plugin.SettingFetcher;
 import run.halo.app.theme.router.strategy.ModelConst;
 import run.halo.photos.finders.PhotoFinder;
@@ -39,23 +37,19 @@ public class PhotoRouter {
      */
     @Bean
     RouterFunction<ServerResponse> photoRouter() {
-        return route(GET("/photos"),
-            handlerFunction());
+        return route(GET("/photos"), handlerFunction());
     }
     
     private HandlerFunction<ServerResponse> handlerFunction() {
         return request -> ServerResponse.ok().render("photos",
-            Map.of("groups", photoGroups(),
-                ModelConst.TEMPLATE_ID, "photos",
-                "photos_title", Mono.fromCallable(
-                    () -> this.settingFetcher.get("base").get("title").asText("图库"))
-                )
+            Map.of("groups", photoGroups(), ModelConst.TEMPLATE_ID, "photos",
+                "photos_title", Mono.fromCallable(() -> this.settingFetcher.get(
+                    "base").get("title").asText("图库"))
+            )
         );
     }
     
     private Mono<List<PhotoGroupVo>> photoGroups() {
-        return photoFinder
-            .groupBy()
-            .collectList();
+        return photoFinder.groupBy().collectList();
     }
 }

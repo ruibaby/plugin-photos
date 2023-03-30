@@ -2,9 +2,7 @@ package run.halo.photos.vo;
 
 import java.util.List;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
-import lombok.With;
 import run.halo.app.extension.MetadataOperator;
 import run.halo.photos.PhotoGroup;
 

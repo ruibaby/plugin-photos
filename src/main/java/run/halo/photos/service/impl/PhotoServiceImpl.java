@@ -32,11 +32,12 @@ public class PhotoServiceImpl implements PhotoService {
     
     @Override
     public Mono<ListResult<Photo>> listPhoto(PhotoQuery query) {
-        Comparator<Photo> comparator =
-            PhotoSorter.from(query.getSort(), query.getSortOrder());
+        Comparator<Photo> comparator = PhotoSorter.from(query.getSort(),
+            query.getSortOrder()
+        );
         return this.client.list(Photo.class, photoListPredicate(query),
-            comparator,
-            query.getPage(), query.getSize());
+            comparator, query.getPage(), query.getSize()
+        );
     }
     
     Predicate<Photo> photoListPredicate(PhotoQuery query) {
@@ -58,9 +59,10 @@ public class PhotoServiceImpl implements PhotoService {
             });
         }
         
-        Predicate<Extension> labelAndFieldSelectorPredicate =
-            labelAndFieldSelectorToPredicate(query.getLabelSelector(),
-                query.getFieldSelector());
+        Predicate<Extension> labelAndFieldSelectorPredicate
+            = labelAndFieldSelectorToPredicate(query.getLabelSelector(),
+            query.getFieldSelector()
+        );
         return predicate.and(labelAndFieldSelectorPredicate);
     }
 }

@@ -3,7 +3,6 @@ package run.halo.photos.finders.impl;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.ObjectUtils;
@@ -43,14 +42,16 @@ public class PhotoFInderImpl implements PhotoFinder {
     }
     
     @Override
-    public Mono<ListResult<PhotoVo>> list(Integer page, Integer size, String group) {
+    public Mono<ListResult<PhotoVo>> list(Integer page, Integer size,
+        String group) {
         return pagePhoto(page, size, group, null, defaultPhotoComparator());
     }
     
-    private Mono<ListResult<PhotoVo>> pagePhoto(Integer page, Integer size, String group,
-                                                Predicate<Photo> photoPredicate,
-                                                Comparator<Photo> comparator) {
-        Predicate<Photo> predicate = photoPredicate == null ? photo -> true : photoPredicate;
+    private Mono<ListResult<PhotoVo>> pagePhoto(Integer page, Integer size,
+        String group, Predicate<Photo> photoPredicate,
+        Comparator<Photo> comparator) {
+        Predicate<Photo> predicate = photoPredicate == null ? photo -> true
+            : photoPredicate;
         if (StringUtils.isNotEmpty(group)) {
             predicate = predicate.and(photo -> {
                 String groupName = photo.getSpec().getGroupName();
@@ -58,58 +59,58 @@ public class PhotoFInderImpl implements PhotoFinder {
             });
         }
         return client.list(Photo.class, predicate, comparator,
-                pageNullSafe(page), sizeNullSafe(size))
-            .flatMap(list -> Flux.fromStream(list.get())
-                .concatMap(photo -> Mono.just(PhotoVo.from(photo)))
-                .collectList()
-                .map(momentVos -> new ListResult<>(list.getPage(), list.getSize(),
-                    list.getTotal(), momentVos)
-                )
-            )
-            .defaultIfEmpty(new ListResult<>(page, size, 0L, List.of()));
+            pageNullSafe(page), sizeNullSafe(size)
+        ).flatMap(list -> Flux.fromStream(list.get())
+            .concatMap(photo -> Mono.just(PhotoVo.from(photo)))
+            .collectList()
+            .map(momentVos -> new ListResult<>(list.getPage(), list.getSize(),
+                list.getTotal(), momentVos
+            ))).defaultIfEmpty(new ListResult<>(page, size, 0L, List.of()));
     }
     
     @Override
     public Flux<PhotoVo> listBy(String groupName) {
-        return client.list(Photo.class,
-                photo -> {
-                    String group = photo.getSpec().getGroupName();
-                    return StringUtils.equals(group, groupName);
-                }, defaultPhotoComparator()
-            )
-            .flatMap(photo -> Mono.just(PhotoVo.from(photo)));
+        return client.list(Photo.class, photo -> {
+            String group = photo.getSpec().getGroupName();
+            return StringUtils.equals(group, groupName);
+        }, defaultPhotoComparator()).flatMap(
+            photo -> Mono.just(PhotoVo.from(photo)));
     }
     
     @Override
     public Flux<PhotoGroupVo> groupBy() {
-        return this.client.list(PhotoGroup.class, null, defaultGroupComparator())
-            .concatMap(group -> {
-                PhotoGroupVo.PhotoGroupVoBuilder builder = PhotoGroupVo.from(group);
-                return this.listBy(group.getMetadata().getName())
-                    .collectList()
-                    .map(photos -> {
-                        PhotoGroup.PostGroupStatus status = group.getStatus();
-                        status.setPhotoCount(photos.size());
-                        builder.status(status);
-                        builder.photos(photos);
-                        return builder.build();
-                    });
-            });
+        return this.client.list(PhotoGroup.class, null,
+            defaultGroupComparator()
+        ).concatMap(group -> {
+            PhotoGroupVo.PhotoGroupVoBuilder builder = PhotoGroupVo.from(group);
+            return this.listBy(group.getMetadata().getName()).collectList().map(
+                photos -> {
+                    PhotoGroup.PostGroupStatus status = group.getStatus();
+                    status.setPhotoCount(photos.size());
+                    builder.status(status);
+                    builder.photos(photos);
+                    return builder.build();
+                });
+        });
     }
     
     static Comparator<PhotoGroup> defaultGroupComparator() {
-        Function<PhotoGroup, Integer> priority = group -> group.getSpec().getPriority();
-        Function<PhotoGroup, Instant> createTime =
-            group -> group.getMetadata().getCreationTimestamp();
-        Function<PhotoGroup, String> name = group -> group.getMetadata().getName();
+        Function<PhotoGroup, Integer> priority = group -> group.getSpec()
+            .getPriority();
+        Function<PhotoGroup, Instant> createTime = group -> group.getMetadata()
+            .getCreationTimestamp();
+        Function<PhotoGroup, String> name = group -> group.getMetadata()
+            .getName();
         return Comparator.comparing(priority, Comparators.nullsLow())
             .thenComparing(createTime)
             .thenComparing(name);
     }
     
     static Comparator<Photo> defaultPhotoComparator() {
-        Function<Photo, Integer> priority = link -> link.getSpec().getPriority();
-        Function<Photo, Instant> createTime = link -> link.getMetadata().getCreationTimestamp();
+        Function<Photo, Integer> priority = link -> link.getSpec()
+            .getPriority();
+        Function<Photo, Instant> createTime = link -> link.getMetadata()
+            .getCreationTimestamp();
         Function<Photo, String> name = link -> link.getMetadata().getName();
         return Comparator.comparing(priority, Comparators.nullsLow())
             .thenComparing(createTime)

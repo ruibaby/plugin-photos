@@ -30,17 +30,18 @@ public class PhotoEndpoint implements CustomEndpoint {
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         final var tag = "api.plugin.halo.run/v1alpha1/Photo";
-        return SpringdocRouteBuilder.route()
-            .GET("photos", this::listPhoto, builder -> {
+        return SpringdocRouteBuilder.route().GET("photos", this::listPhoto,
+            builder -> {
                 builder.operationId("ListPhotos")
                     .description("List photos.")
                     .tag(tag)
-                    .response(responseBuilder()
-                        .implementation(ListResult.generateGenericClass(Photo.class))
-                    );
-                QueryParamBuildUtil.buildParametersFromType(builder, PhotoQuery.class);
-            })
-            .build();
+                    .response(responseBuilder().implementation(
+                        ListResult.generateGenericClass(Photo.class)));
+                QueryParamBuildUtil.buildParametersFromType(builder,
+                    PhotoQuery.class
+                );
+            }
+        ).build();
     }
     
     @Override
@@ -50,8 +51,8 @@ public class PhotoEndpoint implements CustomEndpoint {
     
     private Mono<ServerResponse> listPhoto(ServerRequest serverRequest) {
         PhotoQuery query = new PhotoQuery(serverRequest.queryParams());
-        return photoService.listPhoto(query)
-            .flatMap(photos -> ServerResponse.ok().bodyValue(photos));
+        return photoService.listPhoto(query).flatMap(
+            photos -> ServerResponse.ok().bodyValue(photos));
     }
     
 }

@@ -31,24 +31,23 @@ public class PhotoGroupEndpoint implements CustomEndpoint {
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         final var tag = "api.plugin.halo.run/v1alpha1/PhotoGroup";
-        return SpringdocRouteBuilder.route()
-            .GET("photogroups", this::listPhotoGroup, builder -> {
-                builder.operationId("ListPhotoGroups")
-                    .description("List photoGroups.")
-                    .tag(tag)
-                    .response(responseBuilder()
-                        .implementation(ListResult.generateGenericClass(PhotoGroup.class))
-                    );
-                QueryParamBuildUtil.buildParametersFromType(builder, QueryListRequest.class);
-            })
-            .DELETE("photogroups/{name}", this::deletePhotoGroup,
-                builder -> builder.operationId("DeletePhotoGroup")
-                    .description("Delete photoGroup.")
-                    .tag(tag)
-                    .response(responseBuilder()
-                        .implementation(ListResult.generateGenericClass(PhotoGroup.class))
-                    ))
-            .build();
+        return SpringdocRouteBuilder.route().GET("photogroups",
+            this::listPhotoGroup, builder -> {
+                builder.operationId("ListPhotoGroups").description(
+                    "List photoGroups.").tag(tag).response(
+                    responseBuilder().implementation(
+                        ListResult.generateGenericClass(PhotoGroup.class)));
+                QueryParamBuildUtil.buildParametersFromType(builder,
+                    QueryListRequest.class
+                );
+            }
+        ).DELETE("photogroups/{name}", this::deletePhotoGroup,
+            builder -> builder.operationId("DeletePhotoGroup")
+                .description("Delete photoGroup.")
+                .tag(tag)
+                .response(responseBuilder().implementation(
+                    ListResult.generateGenericClass(PhotoGroup.class)))
+        ).build();
     }
     
     @Override
@@ -58,14 +57,14 @@ public class PhotoGroupEndpoint implements CustomEndpoint {
     
     private Mono<ServerResponse> deletePhotoGroup(ServerRequest serverRequest) {
         String name = serverRequest.pathVariable("name");
-        return photoGroupService.deletePhotoGroup(name)
-            .flatMap(photoGroup -> ServerResponse.ok().bodyValue(photoGroup));
+        return photoGroupService.deletePhotoGroup(name).flatMap(
+            photoGroup -> ServerResponse.ok().bodyValue(photoGroup));
     }
     
     private Mono<ServerResponse> listPhotoGroup(ServerRequest serverRequest) {
         QueryListRequest request = new PhotoQuery(serverRequest.queryParams());
-        return photoGroupService.listPhotoGroup(request)
-            .flatMap(photoGroups -> ServerResponse.ok().bodyValue(photoGroups));
+        return photoGroupService.listPhotoGroup(request).flatMap(
+            photoGroups -> ServerResponse.ok().bodyValue(photoGroups));
     }
     
 }

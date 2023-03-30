@@ -15,16 +15,13 @@ import run.halo.app.extension.GVK;
 @GVK(group = "core.halo.run", version = "v1alpha1", kind = "PhotoGroup", plural = "photogroups", singular = "photogroup")
 public class PhotoGroup extends AbstractExtension {
     
-    @Schema(required = true)
-    private PhotoGroupSpec spec;
+    @Schema(required = true) private PhotoGroupSpec spec;
     
-    @Schema
-    private PostGroupStatus status;
+    @Schema private PostGroupStatus status;
     
     @Data
     public static class PhotoGroupSpec {
-        @Schema(required = true)
-        private String displayName;
+        @Schema(required = true) private String displayName;
         
         private Integer priority;
     }

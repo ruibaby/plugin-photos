@@ -26,9 +26,11 @@ public class PhotoQuery extends IListRequest.QueryListRequest {
     @Nullable
     @Schema(description = "Photos filtered by keyword.")
     public String getKeyword() {
-        return StringUtils.defaultIfBlank(queryParams.getFirst("keyword"), null);
+        return StringUtils.defaultIfBlank(queryParams.getFirst("keyword"),
+            null
+        );
     }
-
+    
     @Schema(description = "Photo collation.")
     public PhotoSorter getSort() {
         String sort = queryParams.getFirst("sort");
@@ -40,7 +42,7 @@ public class PhotoQuery extends IListRequest.QueryListRequest {
         String sortOrder = queryParams.getFirst("sortOrder");
         return convertBooleanOrNull(sortOrder);
     }
-
+    
     private Boolean convertBooleanOrNull(String value) {
         return StringUtils.isBlank(value) ? null : Boolean.parseBoolean(value);
     }

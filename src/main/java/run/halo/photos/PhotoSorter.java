@@ -17,16 +17,18 @@ public enum PhotoSorter {
     
     CREATE_TIME;
     
-    static final Function<Photo, String> name = photo -> photo.getMetadata().getName();
+    static final Function<Photo, String> name = photo -> photo.getMetadata()
+        .getName();
     
     /**
      * Converts {@link Comparator} from {@link PhotoSorter} and ascending.
      *
-     * @param sorter a {@link PhotoSorter}
+     * @param sorter    a {@link PhotoSorter}
      * @param ascending ascending if true, otherwise descending
      * @return a {@link Comparator} of {@link Photo}
      */
-    public static Comparator<Photo> from(PhotoSorter sorter, Boolean ascending) {
+    public static Comparator<Photo> from(PhotoSorter sorter,
+        Boolean ascending) {
         if (Objects.equals(true, ascending)) {
             return from(sorter);
         }
@@ -44,15 +46,14 @@ public enum PhotoSorter {
             return createTimeComparator();
         }
         if (CREATE_TIME.equals(sorter)) {
-            Function<Photo, Instant> comparatorFunc =
-                photo -> photo.getMetadata().getCreationTimestamp();
-            return Comparator.comparing(comparatorFunc)
-                .thenComparing(name);
+            Function<Photo, Instant> comparatorFunc
+                = photo -> photo.getMetadata().getCreationTimestamp();
+            return Comparator.comparing(comparatorFunc).thenComparing(name);
         }
         
         if (DISPLAY_NAME.equals(sorter)) {
-            Function<Photo, String> comparatorFunc =
-                moment -> moment.getSpec().getDisplayName();
+            Function<Photo, String> comparatorFunc = moment -> moment.getSpec()
+                .getDisplayName();
             return Comparator.comparing(comparatorFunc, Comparators.nullsLow())
                 .thenComparing(name);
         }
@@ -81,9 +82,8 @@ public enum PhotoSorter {
      * @return a {@link Comparator} of {@link Photo}
      */
     static Comparator<Photo> createTimeComparator() {
-        Function<Photo, Instant> comparatorFunc =
-            photo -> photo.getMetadata().getCreationTimestamp();
-        return Comparator.comparing(comparatorFunc)
-            .thenComparing(name);
+        Function<Photo, Instant> comparatorFunc = photo -> photo.getMetadata()
+            .getCreationTimestamp();
+        return Comparator.comparing(comparatorFunc).thenComparing(name);
     }
 }

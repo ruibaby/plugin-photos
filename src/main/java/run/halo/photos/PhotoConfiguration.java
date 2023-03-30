@@ -16,7 +16,7 @@ import run.halo.app.core.extension.endpoint.CustomEndpointsBuilder;
  */
 @Configuration
 public class PhotoConfiguration {
-
+    
     /**
      * Register custom endpoints.
      *
@@ -26,7 +26,8 @@ public class PhotoConfiguration {
     @Bean
     RouterFunction<ServerResponse> customEndpoints(ApplicationContext context) {
         var builder = new CustomEndpointsBuilder();
-        context.getBeansOfType(CustomEndpoint.class).values().forEach(builder::add);
+        context.getBeansOfType(CustomEndpoint.class).values().forEach(
+            builder::add);
         return builder.build();
     }
 }

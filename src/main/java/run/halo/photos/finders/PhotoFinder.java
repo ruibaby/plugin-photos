@@ -33,8 +33,8 @@ public interface PhotoFinder {
     /**
      * List photos by page and group.
      *
-     * @param page page number
-     * @param size page size
+     * @param page  page number
+     * @param size  page size
      * @param group group name
      * @return a mono of list result
      */
