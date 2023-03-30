@@ -30,8 +30,8 @@ public class PhotoEndpoint implements CustomEndpoint {
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         final var tag = "api.plugin.halo.run/v1alpha1/Photo";
-        return SpringdocRouteBuilder.route().GET("photos", this::listPhoto,
-            builder -> {
+        return SpringdocRouteBuilder.route().GET("plugins/PluginPhotos/photos",
+            this::listPhoto, builder -> {
                 builder.operationId("ListPhotos")
                     .description("List photos.")
                     .tag(tag)

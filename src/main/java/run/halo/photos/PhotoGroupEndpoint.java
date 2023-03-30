@@ -31,8 +31,9 @@ public class PhotoGroupEndpoint implements CustomEndpoint {
     @Override
     public RouterFunction<ServerResponse> endpoint() {
         final var tag = "api.plugin.halo.run/v1alpha1/PhotoGroup";
-        return SpringdocRouteBuilder.route().GET("photogroups",
-            this::listPhotoGroup, builder -> {
+        return SpringdocRouteBuilder.route().GET(
+            "plugins/PluginPhotos/photogroups", this::listPhotoGroup,
+            builder -> {
                 builder.operationId("ListPhotoGroups").description(
                     "List photoGroups.").tag(tag).response(
                     responseBuilder().implementation(
@@ -41,8 +42,9 @@ public class PhotoGroupEndpoint implements CustomEndpoint {
                     QueryListRequest.class
                 );
             }
-        ).DELETE("photogroups/{name}", this::deletePhotoGroup,
-            builder -> builder.operationId("DeletePhotoGroup")
+        ).DELETE("plugins/PluginPhotos/photogroups/{name}",
+            this::deletePhotoGroup, builder -> builder.operationId(
+                    "DeletePhotoGroup")
                 .description("Delete photoGroup.")
                 .tag(tag)
                 .response(responseBuilder().implementation(

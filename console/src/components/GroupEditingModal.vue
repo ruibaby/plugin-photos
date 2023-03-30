@@ -86,16 +86,16 @@ watch(
   }
 );
 
-const { ControlLeft_Enter, OSLeft_Enter } = useMagicKeys();
+const { ControlLeft_Enter, Meta_Enter } = useMagicKeys();
 
 watch(ControlLeft_Enter, (v) => {
-  if (v) {
+  if (v && !isMac) {
     submitForm("photo-group-form");
   }
 });
 
-watch(OSLeft_Enter, (v) => {
-  if (v) {
+watch(Meta_Enter, (v) => {
+  if (v && isMac) {
     submitForm("photo-group-form");
   }
 });

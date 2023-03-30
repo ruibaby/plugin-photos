@@ -51,7 +51,7 @@ const {
       return [];
     }
     const { data } = await apiClient.get<PhotoList>(
-      "/apis/api.plugin.halo.run/v1alpha1/photos",
+      "/apis/api.plugin.halo.run/v1alpha1/plugins/PluginPhotos/photos",
       {
         params: {
           page: page.value,
