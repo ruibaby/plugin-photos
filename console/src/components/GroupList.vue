@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/vue-query";
 
 const emit = defineEmits<{
   (event: "select", group?: string): void;
+  (event: "deleteGroup"): void;
 }>();
 
 const loading = ref(false);
@@ -57,12 +58,18 @@ const { data: groups, refetch } = useQuery<PhotoGroup[]>({
   },
   onSuccess(data) {
     if (selectedGroup.value) {
-      emit("select", selectedGroup.value);
-      return;
+      const groupNames = data.map((group) => group.metadata.name);
+      if (groupNames.includes(selectedGroup.value)) {
+        emit("select", selectedGroup.value);
+        return;
+      }
     }
 
     if (data.length) {
       handleSelectedClick(data[0]);
+    } else {
+      selectedGroup.value = "";
+      emit("select", "");
     }
   },
   refetchOnWindowFocus: false,
