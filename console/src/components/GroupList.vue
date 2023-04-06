@@ -22,7 +22,6 @@ import { useQuery } from "@tanstack/vue-query";
 
 const emit = defineEmits<{
   (event: "select", group?: string): void;
-  (event: "deleteGroup"): void;
 }>();
 
 const loading = ref(false);

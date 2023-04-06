@@ -212,7 +212,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
   }[] = attachments
     .map((attachment) => {
       const post = {
-        groupName: selectedGroup.value,
+        groupName: selectedGroup.value || "",
       };
 
       if (typeof attachment === "string") {
@@ -284,7 +284,7 @@ const onAttachmentsSelect = async (attachments: AttachmentLike[]) => {
   pageRefetch();
 };
 
-const groupSelectHandle = (group: string) => {
+const groupSelectHandle = (group?: string) => {
   selectedGroup.value = group;
 };
 
